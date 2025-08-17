@@ -1,0 +1,2033 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <title>Athena</title>
+        <link rel="manifest" href="/editor-manifest.json" />
+        <meta name="description" content="A HTML and CSS editor for mobile devices." />
+
+        <link rel="icon" href="https://jamesg.blog/assets/mascot/mascot.svg" />
+        <meta name="theme-color" content="#4e36ac">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.15.4/beautify-html.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.15.4/beautify-css.js"></script>
+        <style>
+            * {
+                font-family:
+                    system-ui,
+                    -apple-system,
+                    BlinkMacSystemFont,
+                    "Segoe UI",
+                    Roboto,
+                    Oxygen,
+                    Ubuntu,
+                    Cantarell,
+                    "Open Sans",
+                    "Helvetica Neue",
+                    sans-serif;
+                box-sizing: border-box;
+                font-size: 1.1rem; /* may change back to 1.2rem */
+            }
+            h1 {
+                font-size: 2.25rem;
+            }
+            h2 {
+                font-size: 1.75rem;
+            }
+            html {
+                background-color: #4e36ac;
+                padding: 0;
+                margin: 0;
+                color: color(display-p3 0.991 0.986 0.989);
+            }
+            main {
+                max-width: 35rem;
+                margin: auto;
+            }
+            .keyboard {
+                display: grid;
+                grid-template-columns: 1fr 1fr 1fr 0.5fr;
+                list-style: none;
+                padding: 0;
+                position: fixed;
+                bottom: 0;
+                width: 35rem;
+                box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+                border: 1px solid #a699ea;
+                border-radius: 0.5rem;
+            }
+            @media screen and (max-width: 35rem) {
+                .keyboard {
+                    width: 95%;
+                    left: 3%;
+                    right: 1rem;
+                }
+            }
+            .keyboard li {
+                align-items: center;
+                text-align: center;
+                background-color: #574a82;
+                border-left: 1px solid #b3a8f0;
+                padding-top: 0.5rem;
+                padding-bottom: 0.5rem;
+                text-overflow: ellipsis;
+                display: block;
+                width: 100%;
+                overflow: hidden;
+            }
+            .keyboard li:first-child {
+                border-left: none;
+                border-top-left-radius: 0.5rem;
+                border-bottom-left-radius: 0.5rem;
+            }
+            .keyboard li:last-child {
+                border-right: none;
+                border-top-right-radius: 0.5rem;
+                border-bottom-right-radius: 0.5rem;
+            }
+            textarea {
+                width: 100%;
+                background-color: #574a82;
+                border: 1px solid #ada0f5;
+                color: #e5e1fd;
+                padding: 0.5rem;
+                border-radius: 0.5rem;
+                resize: none;
+                height: 100%;
+                max-height: 70vh;
+                padding-bottom: 3rem;
+            }
+            .side-by-side {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-top: 1rem;
+            }
+            .preview {
+                border: 1px solid #ada0f5;
+                padding: 0.5rem;
+                border-radius: 0.5rem;
+            }
+            .preview img {
+                max-width: 100%;
+            }
+            details {
+                cursor: pointer;
+                background-color: #574a82;
+                padding: 0.5rem;
+                border-radius: 0.5rem;
+                border: 1px solid #b3a8f0;
+                margin-top: 1rem;
+            }
+            summary {
+                font-weight: bold;
+                color: #e5e1fd;
+            }
+            .preview {
+                a {
+                    color: #b3a8f0;
+                    text-decoration: none;
+                }
+                h1, h2 {
+                    margin: 0;
+                }
+                h1 + *, h2 + *, h3 + * {
+                    margin-top: 0.5rem;
+                }
+                blockquote {
+                    border-left: 4px solid #b3a8f0;
+                    padding-left: 1rem;
+                    color: #e5e1fd;
+                    margin: 0.5rem 0;
+                }
+                .equal-space-nav {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    margin-top: 1rem;
+                }
+            }
+            .preview {
+                margin-top: 0.25rem;
+            }
+            .class-menu {
+                display: none;
+                position: fixed;
+                bottom: 0;
+                left: 1rem;
+                background-color: #574a82;
+                border: 1px solid #b3a8f0;
+                border-radius: 0.5rem;
+                padding: 0.5rem;
+                list-style: none;
+                width: 90%;
+                z-index: 2;
+                max-height: 10rem;
+                overflow-y: auto;
+            }
+            .class-menu li {
+                padding: 0.5rem;
+                cursor: pointer;
+                border-bottom: 1px solid #b3a8f0;
+            }
+            .class-menu:last-child {
+                border-bottom: none;
+            }
+            #css-container {
+                display: none;
+            }
+            small {
+                margin-bottom: 0.25rem;
+                display: grid;
+                grid-template-columns: 1fr 3fr 1fr;
+                align-items: center;
+                color: #e5e1fd;
+            }
+            .left {
+                align-content: center;
+                align-items: center;
+                display: flex;
+            }
+            .middle {
+                display: flex;
+                justify-content: center;
+                gap: 0.25rem;
+            }
+            .right {
+                display: flex;
+                justify-content: flex-end;
+            }
+            svg {
+                height: 1.5rem;
+            }
+            .containers {
+                display: flex;
+                overflow-x: auto;
+                scroll-snap-type: x mandatory; /* snap on the scroller */
+                gap: 1rem;
+                scrollbar-width: none;
+            }
+            .containers::-webkit-scrollbar {
+                display: none; /* hide scrollbar in webkit browsers */
+            }
+
+            .containers > div {
+                flex: 0 0 30rem;              /* don’t shrink; each panel = 35rem wide */
+                scroll-snap-align: end;    /* snap the items */
+                /* optional: ensure the child itself isn't horizontally scrollable */
+                overflow: hidden;
+            }
+            #reset-left {
+                display: flex;
+                flex: 0 0 1rem;
+            }
+            a {
+                color: #b3a8f0;
+            }
+            #html-container, #css-container, #preview-container {
+                display: flex;
+                flex-direction: column;
+                flex: none;
+                overflow: auto;
+                width: 99%;
+                scroll-snap-type: x proximity;
+            }
+            .keyboard small {
+                font-size: 0.5rem;
+                display: block;
+            }
+            table {
+                width: 100%;
+            }
+            @keyframes spin {
+                from {
+                    transform: rotate(360deg);
+                }
+                to {
+                    transform: rotate(0deg);
+                }
+            }
+            .spin {
+                animation: spin 0.2s linear;
+            }
+            .prev-next {
+                display: flex;
+                justify-content: space-between;
+                list-style: none;
+                position: relative;
+                left: 0;
+                right: 9px;
+                padding: 0;
+                margin: 0;
+                margin-top: -2.35rem;
+            }
+            textarea:focus {
+                outline: none;
+            }
+            .prev-next button {
+                background: transparent;
+                border: none;
+                color: #f1e6ff;
+                cursor: pointer;
+                font-size: 1rem;
+                padding: 0.5rem 1rem;
+            }
+            #prev, #next {
+                flex: 0 0 5rem;
+                background-color: #574a82;
+                border: 1px solid #b3a8f0;
+                border-radius: 0.5rem;
+            }
+            #prev {
+                border-top-left-radius: 0;
+                border-bottom-right-radius: 0;
+            }
+            #next {
+                border-top-right-radius: 0;
+                border-bottom-left-radius: 0;
+            }
+        </style>
+    </head>
+    <body>
+        <!-- “Inspiration is where you find it.” - Eduardo Paolozzi -->
+        <main>
+            <div class="containers" dir="ltr">
+                <div id="css-container">
+                    <small style="color: #f1e6ff;">
+                        <div class="left" data-scroll="preview-container">
+                            <svg fill="#d9b5ff" xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="#000000" viewBox="0 0 256 256"><path d="M224,128a8,8,0,0,1-8,8H59.31l58.35,58.34a8,8,0,0,1-11.32,11.32l-72-72a8,8,0,0,1,0-11.32l72-72a8,8,0,0,1,11.32,11.32L59.31,120H216A8,8,0,0,1,224,128Z"></path></svg>
+                            <svg fill="#f1e6ff" xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="#000000" viewBox="0 0 256 256"><path d="M216,40H40A16,16,0,0,0,24,56V200a16,16,0,0,0,16,16H216a16,16,0,0,0,16-16V56A16,16,0,0,0,216,40Zm0,16V88H40V56Zm0,144H40V104H216v96Z"></path></svg>
+                        </div>
+                        <div class="middle">
+                            <svg fill="#f1e6ff" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256"><rect width="256" height="256" fill="none"/><path d="M48,112V40a8,8,0,0,1,8-8h96l56,56v24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/><polyline points="152 32 152 88 208 88" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/><path d="M80,200.87A22.12,22.12,0,0,1,64,208c-13.26,0-24-12.54-24-28s10.74-28,24-28a22.12,22.12,0,0,1,16,7.13" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/><path d="M139.9,153.6s-29.43-7.78-31.8,11,38.43,10.12,35.78,30.72c-2.47,19.16-31.78,11-31.78,11" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/><path d="M203.9,153.6s-29.43-7.78-31.8,11,38.43,10.12,35.78,30.72c-2.47,19.16-31.78,11-31.78,11" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/></svg>
+                            CSS
+                            <div id="undo-css"><svg fill="#f1e6ff" xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="#000000" viewBox="0 0 256 256"><path d="M224,128a96,96,0,0,1-94.71,96H128A95.38,95.38,0,0,1,62.1,197.8a8,8,0,0,1,11-11.63A80,80,0,1,0,71.43,71.39a3.07,3.07,0,0,1-.26.25L44.59,96H72a8,8,0,0,1,0,16H24a8,8,0,0,1-8-8V56a8,8,0,0,1,16,0V85.8L60.25,60A96,96,0,0,1,224,128Z"></path></svg></div>
+                        </div>
+                        <div class="right" data-scroll="html-container">
+                            <svg fill="#d9b5ff" xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="#000000" viewBox="0 0 256 256"><path d="M216,120V88a8,8,0,0,0-2.34-5.66l-56-56A8,8,0,0,0,152,24H56A16,16,0,0,0,40,40v80a8,8,0,0,0,16,0V40h88V88a8,8,0,0,0,8,8h48v24a8,8,0,0,0,16,0ZM160,51.31,188.69,80H160ZM68,160v48a8,8,0,0,1-16,0V192H32v16a8,8,0,0,1-16,0V160a8,8,0,0,1,16,0v16H52V160a8,8,0,0,1,16,0Zm56,0a8,8,0,0,1-8,8h-8v40a8,8,0,0,1-16,0V168H84a8,8,0,0,1,0-16h32A8,8,0,0,1,124,160Zm72,0v48a8,8,0,0,1-16,0V184l-9.6,12.8a8,8,0,0,1-12.8,0L148,184v24a8,8,0,0,1-16,0V160a8,8,0,0,1,14.4-4.8L164,178.67l17.6-23.47A8,8,0,0,1,196,160Zm56,48a8,8,0,0,1-8,8H216a8,8,0,0,1-8-8V160a8,8,0,0,1,16,0v40h20A8,8,0,0,1,252,208Z"></path></svg>
+                            <svg fill="#d9b5ff" xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="#000000" viewBox="0 0 256 256"><path d="M221.66,133.66l-72,72a8,8,0,0,1-11.32-11.32L196.69,136H40a8,8,0,0,1,0-16H196.69L138.34,61.66a8,8,0,0,1,11.32-11.32l72,72A8,8,0,0,1,221.66,133.66Z"></path></svg>
+                        </div>
+                    </small>
+
+                    <textarea placeholder="design your web page here!" id="css" rows="22"></textarea>
+                </div>
+                <div id="html-container">
+                    <small style="color: #f1e6ff;">
+                        <div class="left" data-scroll="css-container">
+                            <svg fill="#d9b5ff" xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="#000000" viewBox="0 0 256 256"><path d="M224,128a8,8,0,0,1-8,8H59.31l58.35,58.34a8,8,0,0,1-11.32,11.32l-72-72a8,8,0,0,1,0-11.32l72-72a8,8,0,0,1,11.32,11.32L59.31,120H216A8,8,0,0,1,224,128Z"></path></svg>
+                            <svg fill="#d9b5ff" xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="#000000" viewBox="0 0 256 256"><path d="M48,180c0,11,7.18,20,16,20a14.24,14.24,0,0,0,10.22-4.66A8,8,0,1,1,85.77,206.4,30,30,0,0,1,64,216c-17.65,0-32-16.15-32-36s14.35-36,32-36a30,30,0,0,1,21.77,9.6,8,8,0,1,1-11.55,11.06A14.24,14.24,0,0,0,64,160C55.18,160,48,169,48,180Zm79.6-8.69c-4-1.16-8.14-2.35-10.45-3.84-1.26-.81-1.23-1-1.12-1.9a4.54,4.54,0,0,1,2-3.67c4.6-3.12,15.34-1.73,19.83-.56a8,8,0,0,0,4.07-15.48c-2.12-.55-21-5.22-32.83,2.76a20.55,20.55,0,0,0-9,14.95c-2,15.88,13.64,20.41,23,23.11,12.07,3.49,13.13,4.92,12.78,7.59-.31,2.41-1.26,3.34-2.14,3.93-4.6,3.06-15.17,1.56-19.55.36a8,8,0,0,0-4.3,15.41,61.23,61.23,0,0,0,15.18,2c5.83,0,12.3-1,17.49-4.46a20.82,20.82,0,0,0,9.19-15.23C154,179,137.48,174.17,127.6,171.31Zm64,0c-4-1.16-8.14-2.35-10.45-3.84-1.25-.81-1.23-1-1.12-1.9a4.54,4.54,0,0,1,2-3.67c4.6-3.12,15.34-1.73,19.82-.56a8,8,0,0,0,4.07-15.48c-2.11-.55-21-5.22-32.83,2.76a20.58,20.58,0,0,0-8.95,14.95c-2,15.88,13.65,20.41,23,23.11,12.06,3.49,13.12,4.92,12.78,7.59-.31,2.41-1.26,3.34-2.15,3.93-4.6,3.06-15.16,1.56-19.54.36A8,8,0,0,0,173.93,214a61.34,61.34,0,0,0,15.19,2c5.82,0,12.3-1,17.49-4.46a20.81,20.81,0,0,0,9.18-15.23C218,179,201.48,174.17,191.59,171.31ZM40,112V40A16,16,0,0,1,56,24h96a8,8,0,0,1,5.66,2.34l56,56A8,8,0,0,1,216,88v24a8,8,0,1,1-16,0V96H152a8,8,0,0,1-8-8V40H56v72a8,8,0,0,1-16,0ZM160,80h28.68L160,51.31Z"></path></svg>
+                        </div>
+                        <div class="middle">
+                            <svg fill="#f1e6ff" xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="#000000" viewBox="0 0 256 256"><path d="M216,120V88a8,8,0,0,0-2.34-5.66l-56-56A8,8,0,0,0,152,24H56A16,16,0,0,0,40,40v80a8,8,0,0,0,16,0V40h88V88a8,8,0,0,0,8,8h48v24a8,8,0,0,0,16,0ZM160,51.31,188.69,80H160ZM68,160v48a8,8,0,0,1-16,0V192H32v16a8,8,0,0,1-16,0V160a8,8,0,0,1,16,0v16H52V160a8,8,0,0,1,16,0Zm56,0a8,8,0,0,1-8,8h-8v40a8,8,0,0,1-16,0V168H84a8,8,0,0,1,0-16h32A8,8,0,0,1,124,160Zm72,0v48a8,8,0,0,1-16,0V184l-9.6,12.8a8,8,0,0,1-12.8,0L148,184v24a8,8,0,0,1-16,0V160a8,8,0,0,1,14.4-4.8L164,178.67l17.6-23.47A8,8,0,0,1,196,160Zm56,48a8,8,0,0,1-8,8H216a8,8,0,0,1-8-8V160a8,8,0,0,1,16,0v40h20A8,8,0,0,1,252,208Z"></path></svg>
+                            HTML
+                            <div id="undo-html"><svg fill="#f1e6ff" xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="#000000" viewBox="0 0 256 256"><path d="M224,128a96,96,0,0,1-94.71,96H128A95.38,95.38,0,0,1,62.1,197.8a8,8,0,0,1,11-11.63A80,80,0,1,0,71.43,71.39a3.07,3.07,0,0,1-.26.25L44.59,96H72a8,8,0,0,1,0,16H24a8,8,0,0,1-8-8V56a8,8,0,0,1,16,0V85.8L60.25,60A96,96,0,0,1,224,128Z"></path></svg></div>
+                        </div>
+                        <div class="right" data-scroll="preview-container">
+                            <svg fill="#d9b5ff" xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="#000000" viewBox="0 0 256 256"><path d="M216,40H40A16,16,0,0,0,24,56V200a16,16,0,0,0,16,16H216a16,16,0,0,0,16-16V56A16,16,0,0,0,216,40Zm0,16V88H40V56Zm0,144H40V104H216v96Z"></path></svg>
+                            <svg fill="#d9b5ff" xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="#000000" viewBox="0 0 256 256"><path d="M221.66,133.66l-72,72a8,8,0,0,1-11.32-11.32L196.69,136H40a8,8,0,0,1,0-16H196.69L138.34,61.66a8,8,0,0,1,11.32-11.32l72,72A8,8,0,0,1,221.66,133.66Z"></path></svg>
+                        </div>
+                    </small>
+                    <textarea placeholder="your space to make something cool!" id="html" rows="22"></textarea>
+                    <ul class="prev-next">
+                        <li><button id="prev">prev</button></li>
+                        <li></li>
+                        <li><button id="next">next</button></li>
+                    </ul>
+                </div>
+                <div id="preview-container">
+                    <small style="color: #f1e6ff;">
+                        <div class="left" data-scroll="html-container">
+                            <svg fill="#d9b5ff" xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="#000000" viewBox="0 0 256 256"><path d="M224,128a8,8,0,0,1-8,8H59.31l58.35,58.34a8,8,0,0,1-11.32,11.32l-72-72a8,8,0,0,1,0-11.32l72-72a8,8,0,0,1,11.32,11.32L59.31,120H216A8,8,0,0,1,224,128Z"></path></svg>
+                            <svg fill="#d9b5ff" xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="#000000" viewBox="0 0 256 256"><path d="M216,120V88a8,8,0,0,0-2.34-5.66l-56-56A8,8,0,0,0,152,24H56A16,16,0,0,0,40,40v80a8,8,0,0,0,16,0V40h88V88a8,8,0,0,0,8,8h48v24a8,8,0,0,0,16,0ZM160,51.31,188.69,80H160ZM68,160v48a8,8,0,0,1-16,0V192H32v16a8,8,0,0,1-16,0V160a8,8,0,0,1,16,0v16H52V160a8,8,0,0,1,16,0Zm56,0a8,8,0,0,1-8,8h-8v40a8,8,0,0,1-16,0V168H84a8,8,0,0,1,0-16h32A8,8,0,0,1,124,160Zm72,0v48a8,8,0,0,1-16,0V184l-9.6,12.8a8,8,0,0,1-12.8,0L148,184v24a8,8,0,0,1-16,0V160a8,8,0,0,1,14.4-4.8L164,178.67l17.6-23.47A8,8,0,0,1,196,160Zm56,48a8,8,0,0,1-8,8H216a8,8,0,0,1-8-8V160a8,8,0,0,1,16,0v40h20A8,8,0,0,1,252,208Z"></path></svg>
+                        </div>
+                        <div class="middle">
+                            <svg fill="#f1e6ff" xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="#000000" viewBox="0 0 256 256"><path d="M216,40H40A16,16,0,0,0,24,56V200a16,16,0,0,0,16,16H216a16,16,0,0,0,16-16V56A16,16,0,0,0,216,40Zm0,16V88H40V56Zm0,144H40V104H216v96Z"></path></svg>
+                            Preview
+                        </div>
+                        <div class="right" data-scroll="css-container">
+                            <svg fill="#f1e6ff" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256"><rect width="256" height="256" fill="none"/><path d="M48,112V40a8,8,0,0,1,8-8h96l56,56v24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/><polyline points="152 32 152 88 208 88" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/><path d="M80,200.87A22.12,22.12,0,0,1,64,208c-13.26,0-24-12.54-24-28s10.74-28,24-28a22.12,22.12,0,0,1,16,7.13" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/><path d="M139.9,153.6s-29.43-7.78-31.8,11,38.43,10.12,35.78,30.72c-2.47,19.16-31.78,11-31.78,11" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/><path d="M203.9,153.6s-29.43-7.78-31.8,11,38.43,10.12,35.78,30.72c-2.47,19.16-31.78,11-31.78,11" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/></svg>
+                            <svg fill="#d9b5ff" xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="#000000" viewBox="0 0 256 256"><path d="M221.66,133.66l-72,72a8,8,0,0,1-11.32-11.32L196.69,136H40a8,8,0,0,1,0-16H196.69L138.34,61.66a8,8,0,0,1,11.32-11.32l72,72A8,8,0,0,1,221.66,133.66Z"></path></svg>
+                        </div>
+                    </small>
+                    <div class="preview"></div>
+                    <button id="copy-to-clipboard" style="margin-top: 1rem; background-color: #574a82; color: #e5e1fd; border: 1px solid #e5e1fd; padding: 0.5rem; border-radius: 0.5rem;">Copy to Clipboard</button>
+                    <button id="reset" style="margin-top: 1rem; background-color: #b84747; color: #e5e1fd; border: 1px solid #e5e1fd; padding: 0.5rem; border-radius: 0.5rem;">Reset</button>
+                    <section id="settings" style="margin-top: 0.5rem;">
+                        <label><input type="checkbox" id="show-hints">Show element hints</label>
+                    </section>
+                    <p style="font-size: 0.8rem">Version: 0.0.1. <a href="https://github.com/capjamesg/html-editor" rel="code" style="font-size: 0.8rem;">View source</a>.</p>
+                    <p style="font-size: 0.8rem; margin-top: 0;"><a href="https://github.com/capjamesg/html-editor" rel="code" style="font-size: 0.8rem;">Documentation</a>.</p>
+                </div>
+            </div>
+            <ul class="class-menu" id="class-menu"></ul>
+            <ul class="class-menu" id="color-menu"></ul>
+            <ul class="keyboard">
+                <li><span>&lt;p&gt;</span></li>
+                <li><span>&lt;ul&gt;</span></li>
+                <li><span>&lt;i&gt;</span></li>
+                <li><span></span></li>
+            </ul>
+        </main>
+    </body>
+    <script>
+        // set height: calc(100vh - 6.5rem); for textarea height if on firefox mobile
+        if (/Firefox/i.test(window.navigator.userAgent) && /Mobile/i.test(window.navigator.userAgent)) {
+            textarea.style.height = `calc(100vh - 6.5rem)`;
+        }
+
+        // scroll user to html container
+        qs("#html-container").scrollIntoView();
+        function TrieNode(key) {
+  // the "key" value will be the character in sequence
+  this.key = key;
+  
+  // we keep a reference to parent
+  this.parent = null;
+  
+  // we have hash of children
+  this.children = {};
+  
+  // check to see if the node is at the end
+  this.end = false;
+}
+
+// iterates through the parents to get the word.
+// time complexity: O(k), k = word length
+TrieNode.prototype.getWord = function() {
+  var output = [];
+  var node = this;
+  
+  while (node !== null) {
+    output.unshift(node.key);
+    node = node.parent;
+  }
+  
+  return output.join('');
+};
+
+// -----------------------------------------
+
+// we implement Trie with just a simple root with null value.
+function Trie() {
+  this.root = new TrieNode(null);
+}
+
+// inserts a word into the trie.
+// time complexity: O(k), k = word length
+Trie.prototype.insert = function(word) {
+  var node = this.root; // we start at the root 😬
+  
+  // for every character in the word
+  for(var i = 0; i < word.length; i++) {
+    // check to see if character node exists in children.
+    if (!node.children[word[i]]) {
+      // if it doesn't exist, we then create it.
+      node.children[word[i]] = new TrieNode(word[i]);
+      
+      // we also assign the parent to the child node.
+      node.children[word[i]].parent = node;
+    }
+    
+    // proceed to the next depth in the trie.
+    node = node.children[word[i]];
+    
+    // finally, we check to see if it's the last word.
+    if (i == word.length-1) {
+      // if it is, we set the end flag to true.
+      node.end = true;
+    }
+  }
+};
+
+// check if it contains a whole word.
+// time complexity: O(k), k = word length
+Trie.prototype.contains = function(word) {
+  var node = this.root;
+  
+  // for every character in the word
+  for(var i = 0; i < word.length; i++) {
+    // check to see if character node exists in children.
+    if (node.children[word[i]]) {
+      // if it exists, proceed to the next depth of the trie.
+      node = node.children[word[i]];
+    } else {
+      // doesn't exist, return false since it's not a valid word.
+      return false;
+    }
+  }
+  
+  // we finished going through all the words, but is it a whole word?
+  return node.end;
+};
+
+// returns every word with given prefix
+// time complexity: O(p + n), p = prefix length, n = number of child paths
+Trie.prototype.find = function(prefix) {
+  var node = this.root;
+  var output = [];
+  
+  // for every character in the prefix
+  for(var i = 0; i < prefix.length; i++) {
+    // make sure prefix actually has words
+    if (node.children[prefix[i]]) {
+      node = node.children[prefix[i]];
+    } else {
+      // there's none. just return it.
+      return output;
+    }
+  }
+  
+  // recursively find all words in the node
+  findAllWords(node, output);
+  
+  return output;
+};
+
+// recursive function to find all words in the given node.
+function findAllWords(node, arr) {
+  // base case, if node is at a word, push to output
+  if (node.end) {
+    arr.unshift(node.getWord());
+  }
+  
+  // iterate through each children, call recursive findAllWords
+  for (var child in node.children) {
+    findAllWords(node.children[child], arr);
+  }
+}
+
+        var non_closing_tags = [
+            "img",
+            "input",
+            "br",
+            "hr",
+            "meta",
+            "link",
+            "base",
+            "area",
+            "col",
+            "embed",
+            "source",
+            "track"
+        ];
+
+        document.getElementById("copy-to-clipboard").addEventListener("click", function() {
+            const htmlContent = document.getElementById("html").value;
+            const cssContent = document.getElementById("css").value;
+            const combinedContent = `<!DOCTYPE html><html><style>${cssContent}</style>${htmlContent}</html>`;
+            navigator.clipboard.writeText(combinedContent).then(() => {
+                // change texet for 3 secs
+                const button = document.getElementById("copy-to-clipboard");
+                button.textContent = "Copied!";
+                setTimeout(() => {
+                    button.textContent = "Copy Code to Clipboard";
+                }, 1000);
+            }).catch(err => {
+                console.error('Failed to copy: ', err);
+            });
+        });
+        document.getElementById("reset").addEventListener("click", function() {
+            if (confirm("Are you sure you want to reset? This will permanently delete your code.")) {
+                document.getElementById("html").value = "";
+                document.getElementById("css").value = "";
+                qs(".preview").innerHTML = "";
+            }
+        });
+
+        var elementDefinitions = {
+            "p": "paragraph",
+            "ul": "unordered list",
+            "ol": "ordered list",
+            "h1": "biggest heading",
+            "h2": "heading 2",
+            "h3": "heading 3",
+            "img": "image",
+            "a": "link",
+        }
+
+        var elementsToShowOnce = ["html", "title", "body", "head", "h1"];
+
+        var showElementDefinitions = false;
+
+        var hints = {
+            "img": {
+                "src": 0.9,
+                "alt": 0.8,
+                "class": 0.7,
+            },
+            "a": {
+                "href": 0.9,
+                " ": 0.8, // blank to keep sizes the same
+                "/a": -1, // always put this one last
+            },
+            "section": {
+                "id": 0.9,
+                "class": 0.8,
+            },
+            "aside": {
+                "id": 0.9,
+                "class": 0.8,
+            },
+            "form": {
+                "id": 0.9,
+                "class": 0.8,
+            },
+            "header": {
+                "id": 0.9,
+                "class": 0.8,
+            },
+            "main": {
+                "id": 0.9,
+                "class": 0.8,
+            },
+            "div": {
+                "id": 0.9,
+                "class": 0.8,
+            },
+            "footer": {
+                "id": 0.9,
+                "class": 0.8,
+            },
+            "figure": {
+                "id": 0.9,
+                "class": 0.8,
+            },
+            "dl": {
+                "id": 0.9,
+                "class": 0.8,
+            },
+            "meta": {
+                "name": 0.9,
+                "content": 0.8,
+                "/meta": -1
+            },
+            "link": {
+                "rel": 0.9,
+                "href": 0.8,
+                "/link": -1
+            },
+            "input": {
+                "type": 0.9,
+                "name": 0.8,
+                "placeholder": 0.7,
+                "/input": -1
+            },
+            "select": {
+                "name": 0.9,
+                "multiple": 0.8,
+                "/select": -1
+            },
+            "option": {
+                "value": 0.9,
+                "label": 0.8,
+                "/option": -1
+            },
+        }
+        var probs = {
+            "p": {
+                "a": 0.9,
+                "i": 0.8,
+                "/p": -1, // always put this one last
+            },
+            "ul": {
+                "li": 0.9,
+                "": 0.8, // blank to keep sizes the same
+                "/ul": -1
+            },
+            "li": {
+                "p": 0.9,
+                "a": 0.8,
+                "/li": -1
+            },
+            "meta": {
+                "": 0.9,
+                " ": 0.8,
+                "  ": 0.7
+            },
+            "no_ctx_has_main": {
+                "h1": 0.9,
+                "section": 0.8,
+                "article": 0.7,
+            },
+            "no_ctx_has_main_and_section": {
+                "section": 0.8,
+                "": 0.7,
+                "/main": -1,
+            },
+            "no_ctx_start": {
+                "html": 0.9,
+                "main": 0.8,
+                "h1": 0.7,
+            },
+            "no_ctx": {
+                "p": 0.9,
+                "ul": 0.8,
+                "img": 0.7
+            },
+            "button": {
+                "a": 0.9,
+                "": 0.7,
+            },
+            "dl": {
+                "dt": 0.9,
+                "dd": 0.8,
+                "/dl": -1
+            },
+            "dt": {
+                "p": 0.9,
+                "a": 0.8,
+                "/dt": -1
+            },
+            "blockquote": {
+                "p": 0.9,
+                "cite": 0.8,
+                "/blockquote": -1
+            },
+            "a": {
+                "img": 0.9,
+                "p": 0.8,
+                "/a": -1
+            },
+            "address": {
+                "p": 0.9,
+                "a": 0.8,
+                "/address": -1
+            },
+            "aside": {
+                "h2": 0.9,
+                "nav": 0.8,
+                "/aside": -1
+            },
+            "header": {
+                "h1": 0.9,
+                "nav": 0.8,
+                "/header": -1
+            },
+            "footer": {
+                "p": 0.9,
+                "a": 0.8,
+                "/footer": -1
+            },
+            "hgroup": {
+                "h1": 0.9,
+                "p": 0.8,
+                "/hgroup": -1
+            },
+            "search": {
+                "form": 0.9,
+                "input": 0.8,
+                "/search": -1
+            },
+            "i": {
+                "a": 0.9,
+                "b": 0.8,
+                "/i": -1
+            },
+            "b": {
+                "i": 0.9,
+                "a": 0.8,
+                "/b": -1
+            },
+            "h1": {
+                "": 0.9, // blank to keep sizes the same
+                " ": 0.8,
+                "/h1": -1
+            },
+            "h2": {
+                "": 0.9, // blank to keep sizes the same
+                " ": 0.8,
+                "/h2": -1
+            },
+            "h3": {
+                "": 0.9, // blank to keep sizes the same
+                " ": 0.8,
+                "/h3": -1
+            },
+            "section": {
+                "h2": 0.8,
+                "p": 0.7,
+                "/section": -1
+            },
+            "main": {
+                "h1": 0.9,
+                "section": 0.8,
+                "/main": -1
+            },
+            "img": {
+                "p": 0.9,
+                "a": 0.8,
+                " ": 0.7, // blank to keep sizes the same
+            },
+            "tr": {
+                "td": 0.9,
+                "th": 0.8,
+                "/tr": -1 // always put this one last
+            },
+            "td": {
+                "p": 0.9,
+                "a": 0.8,
+                "/td": -1 // always put this one last
+            },
+            "thead": {
+                "tr": 0.9,
+                "th": 0.8,
+                "/thead": -1
+            },
+            "tbody": {
+                "tr": 0.9,
+                "td": 0.8,
+                "/tbody": -1
+            },
+            "article": {
+                "h1": 0.9,
+                "section": 0.8,
+                "/article": -1
+            },
+            "form": {
+                "label": 0.9,
+                "input": 0.8,
+                "/form": -1
+            },
+            "figure": {
+                "img": 0.9,
+                "figcaption": 0.8,
+                "/figure": -1
+            },
+            "figcaption": {
+                "": 0.9, // blank to keep sizes the same
+                " ": 0.8,
+                "/figcaption": -1
+            },
+            "head": {
+                "title": 0.9,
+                "meta": 0.8,
+                "/head": -1
+            },
+            "body": {
+                "main": 0.9,
+                "header": 0.8,
+                "/body": -1
+            },
+            "nav": {
+                "ul": 0.9,
+                "menu": 0.8,
+                "/nav": -1
+            },
+            "video": {
+                "source": 0.9,
+                "track": 0.8,
+                "/video": -1
+            },
+            "audio": {
+                "source": 0.9,
+                "track": 0.8,
+                "/audio": -1
+            },
+            "table": {
+                "thead": 0.9,
+                "tbody": 0.8,
+                "/table": -1
+            },
+            "title": {
+                "": 0.9, // blank to keep sizes the same
+                " ": 0.8,
+                "/title": -1
+            },
+            "dd": {
+                "p": 0.9,
+                "a": 0.8,
+                "/dd": -1
+            },
+            "html": {
+                "head": 0.9,
+                "body": 0.8,
+                "/html": -1
+            },
+            "cite": {
+                "p": 0.9,
+                "a": 0.8,
+                "/cite": -1
+            },
+            "pre": {
+                "code": 0.9,
+                " ": 0.8, // blank to keep sizes the same
+                "/pre": -1
+            },
+            "abbr": {
+                " ": 0.9,
+                "  ": 0.8,
+                "/abbr": -1
+            },
+            "code": {
+                " ": 0.9,
+                "  ": 0.8,
+                "/code": -1
+            },
+            "dfn": {
+                " ": 0.9,
+                "  ": 0.8,
+                "/dfn": -1
+            },
+            "em": {
+                " ": 0.9,
+                "  ": 0.8,
+                "/em": -1
+            },
+            "q": {
+                " ": 0.9,
+                "  ": 0.8,
+                "/q": -1
+            },
+            "s": {
+                " ": 0.9,
+                "  ": 0.8,
+                "/s": -1
+            },
+            "small": {
+                " ": 0.9,
+                "  ": 0.8,
+                "/small": -1
+            },
+            "span": {
+                " ": 0.9,
+                "  ": 0.8,
+                "/span": -1
+            },
+            "sub": {
+                " ": 0.9,
+                "  ": 0.8,
+                "/sub": -1
+            },
+            "sup": {
+                " ": 0.9,
+                "  ": 0.8,
+                "/sup": -1
+            },
+            "audio": {
+                "source": 0.9,
+                "track": 0.8,
+                "/audio": -1
+            },
+            "video": {
+                "source": 0.9,
+                "track": 0.8,
+                "/video": -1
+            },
+            "iframe": {
+                " ": 0.9, // blank to keep sizes the same
+                "  ": 0.8,
+                "/iframe": -1 // always put this one last
+            },
+            "button": {
+                " ": 0.9, // blank to keep sizes the same
+                "  ": 0.8,
+                "/button": -1 // always put this one last
+            },
+            "datalist": {
+                "option": 0.9,
+                " ": 0.8, // blank to keep sizes the same
+                "/datalist": -1 // always put this one last
+            },
+            "option": {
+                " ": 0.9, // blank to keep sizes the same
+                "  ": 0.8,
+                "/option": -1 // always put this one last
+            },
+            "legend": {
+                " ": 0.9, // blank to keep sizes the same
+                "  ": 0.8,
+                "/legend": -1 // always put this one last
+            },
+            "fieldset": {
+                "legend": 0.9,
+                " ": 0.8, // blank to keep sizes the same
+                "/fieldset": -1 // always put this one last
+            },
+            "optgroup": {
+                "option": 0.9,
+                " ": 0.8, // blank to keep sizes the same
+                "/optgroup": -1 // always put this one last
+            },
+            "label": {
+                " ": 0.9, // blank to keep sizes the same
+                "  ": 0.8,
+                "/label": -1 // always put this one last
+            },
+            "select": {
+                "option": 0.9,
+                "optgroup": 0.8,
+                "/select": -1 // always put this one last
+            },
+            "option": {
+                " ": 0.9, // blank to keep sizes the same
+                "  ": 0.8,
+                "/option": -1 // always put this one last
+            },
+            "textarea": {
+                " ": 0.9, // blank to keep sizes the same
+                "  ": 0.8,
+                "/textarea": -1 // always put this one last
+            },
+            "details": {
+                "summary": 0.9,
+                "p": 0.8,
+                "/details": -1 // always put this one last
+            },
+            "summary": {
+                " ": 0.9, // blank to keep sizes the same
+                "  ": 0.8,
+                "/summary": -1 // always put this one last
+            },
+        };
+        var cssProbs = {
+            "no_ctx": {
+                "section": 0.9,
+                "h2": 0.8,
+                "{": -1 // always put this one last
+            },
+            "no_ctx_css_props": {
+                "border": 0.9,
+                "background": 0.8,
+                "}": 0.7,
+            },
+            "": {
+                "border": 0.9,
+                "background": 0.8,
+                "}": -1 
+            },
+        };
+
+        var macroExpansions = {
+            "<figure>": `<figure>
+    <img src="" alt="">
+    <figcaption></figcaption>
+</figure>`,
+            "<nav>": `<nav>
+    <ul>
+        <li><a href=""></a></li>
+    </ul>
+</nav>`,
+            "<blockquote>": `<blockquote>
+    <p></p>
+    <cite></cite>
+</blockquote>`,
+            "<details>": `<details>
+    <summary></summary>
+    <p></p>
+</details>`
+        };
+        var isInCSS = false;
+        var isInClass = false;
+        var isInCSSColonContext = false;
+    
+        function show (el, mode) {
+            el.style.display = mode;
+        }
+
+        function hide (el) {
+            el.style.display = "none";
+        }
+
+        function qs (el) {
+            return document.querySelector(el);
+        }
+
+        // if containers scroll position is 0, move preview to before css so swipe can happen
+        qs(".containers").addEventListener("scroll", function() {
+            // check which pane is in view: preview, html, or css
+            var paneInView = "";
+            var containers = qs(".containers");
+            var previewContainer = qs("#preview-container");
+            var cssContainer = qs("#css-container");
+            var htmlContainer = qs("#html-container");
+            if (previewContainer.getBoundingClientRect().left >= 0 && previewContainer.getBoundingClientRect().right <= window.innerWidth) {
+                paneInView = "preview";
+            } else if (htmlContainer.getBoundingClientRect().left >= 0 && htmlContainer.getBoundingClientRect().right <= window.innerWidth) {
+                paneInView = "html";
+            } else if (cssContainer.getBoundingClientRect().left >= 0 && cssContainer.getBoundingClientRect().right <= window.innerWidth) {
+                paneInView = "css";
+            }
+                // scroll smooth into view
+            if (paneInView === "css") {
+                containers.insertBefore(previewContainer, containers.firstChild);
+                containers.insertBefore(cssContainer, previewContainer.nextSibling);
+                cssContainer.scrollIntoView();
+                // document.getElementById("css").focus();
+                // document.getElementById("css").dispatchEvent(new Event("input"));
+
+                show(qs(".keyboard"), "grid");
+                hide(qs("#class-menu"));
+                hide(qs(".prev-next"));
+                console.warn("Switching to CSS mode");
+
+                isInCSS = true;
+                switchContext("no_ctx");
+            } else if (paneInView === "preview") {
+                containers.insertBefore(htmlContainer, containers.firstChild);
+                containers.insertBefore(previewContainer, htmlContainer.nextSibling);
+                previewContainer.scrollIntoView();
+
+                hide(qs("#class-menu"));
+                hide(qs(".keyboard"));
+                hide(qs(".prev-next"));
+
+                console.warn("Switching to HTML mode");
+                isInCSS = false;
+                switchContext("no_ctx_start");
+            } else if (paneInView === "html") {
+                containers.insertBefore(cssContainer, containers.firstChild);
+                containers.insertBefore(htmlContainer, cssContainer.nextSibling);
+                htmlContainer.scrollIntoView();
+                // document.getElementById("html").focus();
+                // document.getElementById("html").dispatchEvent(new Event("input"));
+                // show keyboard
+                isInCSS = false;
+                show(qs(".keyboard"), "grid");
+                hide(qs("#class-menu"));
+                show(qs(".prev-next"), "flex");
+            }
+        });
+        function toggleHints() {
+            showElementDefinitions = qs("#show-hints").checked;
+            if (showElementDefinitions) {
+                showElementDefinitions = true;
+            } else {
+                showElementDefinitions = false;
+            }
+            qs("#html").dispatchEvent(new Event("input"));
+        }
+        qs("#show-hints").addEventListener("change", toggleHints);
+
+        function getProbs (key) {
+            var probCandidates = probs[key.toLowerCase()] || probs[chooseBetweenCtxes()];
+            var probCandidatesKeys = Object.keys(probCandidates);
+            var toHide = [];
+            var html = qs("#html").value;
+            var dom = new DOMParser().parseFromString(html, "text/html");
+            for (var el of elementsToShowOnce) {
+                var element = dom.querySelector(el);
+                var tagName = element ? element.tagName.toLowerCase() : null;
+                if (element && tagName && probCandidates[tagName] && html.includes(`<${tagName}`)) {
+                    toHide.push(tagName);
+                }
+            }
+            var filteredProbs = {};
+            for (var key of probCandidatesKeys) {
+                if (!toHide.includes(key)) {
+                    filteredProbs[key] = probCandidates[key];
+                }
+            }
+            if (Object.keys(filteredProbs).length < 3) {
+                for (var i = 0; i < 4 - Object.keys(filteredProbs).length; i++) {
+                    filteredProbs[" ".repeat(i + 1)] = 0.1; // add a space with low probability
+                }
+            }
+            return filteredProbs;
+        }
+
+        var cssProperties = ["border", "background", "color", "padding", "margin", "font-size", "font-family", "text-align", "display", "width", "height", "position", "top", "left", "right", "bottom", "z-index", "overflow", "flex-direction", "justify-content", "align-items", "box-shadow", "opacity", "padding-top", "padding-right", "padding-bottom", "padding-left", "margin-top", "margin-right", "margin-bottom", "margin-left", "border-radius", "border-width", "border-style", "border-color", "background-color", "color", "font-weight", "font-style", "text-decoration", "line-height", "letter-spacing", "text-transform", "border-top", "border-bottom", "border-left", "border-right"];
+        var cssPropertyAttributeContextProbs = {
+            "color": {
+                "blue": 0.9,
+                "green": 0.8,
+                "pink": 0.7,
+            },
+            "background": {
+                "blue": 0.9,
+                "green": 0.8,
+                "pink": 0.7,
+            },
+            "border": {
+                "1px solid": 0.9,
+                "1px dashed": 0.8,
+                "1px dotted": 0.7
+            },
+        };
+        var colors = ["blue", "green", "pink", "red", "yellow", "purple", "orange", "black", "white"];
+        var colorTrie = new Trie();
+        for (var color of colors) {
+            colorTrie.insert(color);
+        }
+        var trie = new Trie();
+        var elements = ["html", "link", "div", "span", "p", "ul", "ol", "li", "a", "img", "h1", "h2", "h3", "section", "article", "main", "footer", "header", "nav", "aside", "form", "input", "button", "form", "label", "select", "option", "textarea", "table", "thead", "tbody", "tr", "th", "td", "blockquote", "code", "pre", "figure", "figcaption", "video", "audio", "canvas", "svg", "path", "circle", "rect", "line", "polygon", "polyline", "g", "defs", "use", "symbol", "title", "head", "style", "link", "meta", "base", "body", "dl", "dt", "dd", "cite", "time", "mark", "progress", "meter", "details", "summary", "dialog", "template", "slot", "picture", "source", "track"];
+        
+        // TODO: Finish lists
+        var microformats = ["h-entry", "h-feed", "p-name", "p-author", "h-card", "p-summary", "e-content", "u-url", "p-location", "dt-published", "dt-updated", "p-rsvp", "u-like-of", "u-repost-of"];
+        var microformatsIdealElements = {
+            "dt-published": ["date"],
+            "dt-updated": ["date"],
+            "u-like-of": ["a"],
+            "u-repost-of": ["a"],
+            "u-url": ["a"]
+        };
+
+        var microformatsTrie = new Trie();
+        for (var mf of microformats) {
+            microformatsTrie.insert(mf);
+        }
+
+        for (var el of elements) {
+            trie.insert(el);
+        }
+        var cssPropertyTrie = new Trie();
+        for (var prop of cssProperties) {
+            cssPropertyTrie.insert(prop);
+        }
+        var defaultClasses = {
+            "side-by-side": 10,
+            "float": 9,
+            "equal-space-nav": 8
+        };
+        var classesByUse = {};
+        var expansions = {};
+        function chooseBetweenCtxes () {
+            // if fewer than 5 lines in file and no h1, return no_ctx_start
+            var textarea = qs("#html");
+            var lines = textarea.value.split("\n").length;
+            if (lines < 2 && !textarea.value.includes("<main>") && !textarea.value.includes("<article>")) {
+                return "no_ctx_START";
+            } else if (lines < 2 && textarea.value.includes("<main>")) {
+                return "no_ctx_HAS_MAIN";
+            } else if (textarea.value.includes("<section>") && !textarea.value.includes("</main>")) {
+                return "no_ctx";
+            }
+            return "no_ctx";
+        }
+        var ctx = chooseBetweenCtxes();
+        var ctx_results = getProbs(ctx);
+        var results = Object.keys(ctx_results).sort((a, b) => ctx_results[b] - ctx_results[a]);
+        var keyboard = qs(".keyboard");
+        keyboard.innerHTML = results.map((key) => `<li><span>&lt;${key}&gt;</span>${elementDefinitions[key] && showElementDefinitions ? `<small>${elementDefinitions[key]}</small>` : ""}</li>`).join("");
+        var textarea = qs("#html");
+        const MORE = "[+]";
+        const BACK = "[-]";
+
+        // on all "left" clicks, move scroll
+        for (var el of document.querySelectorAll(".left")) {
+            el.addEventListener("click", function (e) {
+                // get data-scroll attr
+                var dataScroll = e.currentTarget.getAttribute("data-scroll");
+                var item = qs(`#${dataScroll}`);
+                item.scrollIntoView({ behavior: "smooth" });
+            });
+        }
+
+        for (var el of document.querySelectorAll(".right")) {
+            el.addEventListener("click", function (e) {
+                // get data-scroll attr
+                var dataScroll = e.currentTarget.getAttribute("data-scroll");
+                var item = qs(`#${dataScroll}`);
+                item.scrollIntoView({ behavior: "smooth" });
+            });
+        }
+
+
+        function showClassMenu () {
+            isInClass = true;
+            // get list of classes by parsing html
+            var htmlDocument = new DOMParser().parseFromString(qs("#html").value, "text/html");
+            var classElements = document.querySelectorAll("[class]");
+            var textarea = qs("#html");
+            var cursorPositionInDoc = textarea.selectionStart;
+            var textBeforeCursor = textarea.value.slice(0, cursorPositionInDoc);
+            var indexOfClassOpen = textBeforeCursor.lastIndexOf('class="');
+            var textAfterClassOpen = textBeforeCursor.slice(indexOfClassOpen + 7);
+            var wordBeforeCursor = textAfterClassOpen.split(/\s+/).pop();
+
+            classElements.forEach((el) => {
+                var classList = el.getAttribute("class").split(" ");
+                classList.forEach((className) => {
+                    classesByUse[className] = (classesByUse[className] || 0) + 1;
+                });
+            });
+
+            classesByUse = { ...defaultClasses, ...classesByUse };
+            var classMenu = qs("#class-menu");
+            var microformats = microformatsTrie.find(wordBeforeCursor.trim()) || [];
+            // dedupe
+            microformats = [...new Set(microformats)];
+            var microformatsList = microformats.map((key) => `<li><span data-trie="true">${key}</span></li>`);
+            var filteredResultsByMatchingPrefix = Object.keys(classesByUse).filter((key) => {
+                // if key starts with wordBeforeCursor
+                return key.startsWith(wordBeforeCursor.trim());
+            }).sort((a, b) => classesByUse[b] - classesByUse[a]);
+            // dedupe
+            filteredResultsByMatchingPrefix = [...new Set(filteredResultsByMatchingPrefix)];
+            // remove empty spaces
+            filteredResultsByMatchingPrefix = filteredResultsByMatchingPrefix.filter((key) => key.trim() !== "");
+            var resultsList = filteredResultsByMatchingPrefix.map((key) => `<li><span data-trie="true">${key}</span></li>`);
+
+            // add microformats
+            classMenu.innerHTML = [...resultsList, ...microformatsList].join("");
+            // add click event to new elements
+            for (var el of document.querySelectorAll("#class-menu li")) {
+                el.addEventListener("click", add.bind(el));
+            }
+            // add button to bottom to close menu
+            var closeButton = document.createElement("li");
+            var classMenu = document.querySelector("#class-menu");
+            closeButton.innerHTML = `<span>${BACK}</span>`;
+            closeButton.addEventListener("click", hideClassMenu);
+            classMenu.appendChild(closeButton);
+            show(classMenu, "block");
+            console.log(classMenu)
+            hide(keyboard);
+            hide(qs(".prev-next"));
+        }
+
+        function hideClassMenu () {
+            isInClass = false;
+            var classMenu = document.querySelector("#class-menu");
+
+            hide(classMenu);
+            show(qs(".keyboard"), "grid");
+            show(qs(".prev-next"), "flex");
+        }
+
+        function showColorMenu (prefix) {
+            var colorMenu = qs("#color-menu");
+            colorMenu.innerHTML = "";
+            var cssText = qs("#css").value;
+            show(colorMenu, "grid")
+            // get all six letter strings that match #<color>
+            var colorMatches = cssText.match(/#([0-9a-fA-F]{6})\b/g) || [];
+            // dedupe
+            colorMatches = [...new Set(colorMatches)];
+            colorMatches.forEach((color) => {
+                var colorItem = document.createElement("li");
+                colorItem.textContent = color;
+                // set background color
+                colorItem.style.backgroundColor = color;
+                colorMenu.appendChild(colorItem);
+            });
+            for (var el of document.querySelectorAll("#color-menu li")) {
+                el.addEventListener("click", add.bind(el));
+            }
+            if (colorMatches.length > 0) {
+                show(colorMenu, "grid");
+            }
+        }
+
+        var fullCSSTextBeforeManipulation = "";
+        var fullHTMLTextBeforeManipulation = "";
+        document.getElementById("undo-html").addEventListener("click", function (e) {
+            // undo last change
+            var textarea = qs("#html");
+            e.currentTarget.classList.add("spin");
+            if (fullHTMLTextBeforeManipulation.trim() === "") {
+                return;
+            }
+            textarea.value = fullHTMLTextBeforeManipulation;
+            textarea.dispatchEvent(new Event("input"));
+        });
+        document.getElementById("undo-css").addEventListener("click", function (e) {
+            // undo last change
+            var textarea = qs("#css");
+            e.currentTarget.classList.add("spin");
+            if (fullCSSTextBeforeManipulation.trim() === "") {
+                return;
+            }
+            textarea.value = fullCSSTextBeforeManipulation;
+            textarea.dispatchEvent(new Event("input"));
+        });
+        // if in css, reset 
+        function getElementAttribute () {
+            var textareaText = qs("#html").value;
+            var cursorPosition = qs("#html").selectionStart;
+            // get all chars after most recent <
+            var lastAngleBracket = textareaText.lastIndexOf("<", cursorPosition);
+            var elementText = textareaText.slice(lastAngleBracket, cursorPosition);
+            var lastClosingBracket = elementText.lastIndexOf(">");
+            if (elementText.includes("class=")) {
+                // show class menu
+                showClassMenu();
+                isInClass = true;
+                return;
+            }
+        }
+
+        function emmetExpansion (event) {
+            if (isInCSS) {
+                var textarea = qs("#css");
+            } else {
+                var textarea = qs("#html");
+            }
+            var cursorPosition = textarea.selectionStart;
+            var textBeforeCursor = textarea.value.slice(0, cursorPosition);
+
+            if (textBeforeCursor.endsWith("#")) {
+                showColorMenu();
+            }
+
+            if (textarea.value === "! ") {
+                textarea.value = "<!DOCTYPE html>\n<html>\n<head>\n<title>Document</title>\n</head>\n<body>\n\n</body>\n</html>";
+                return;
+            }
+            console.log("textBeforeCursor", textBeforeCursor);
+
+            if (textBeforeCursor.trim().endsWith(".")) {
+                // show class menu
+                console.log("show class menu");
+                showClassMenu();
+                return;
+            } else {
+                hideClassMenu();
+            }
+            if (isInCSS) { return; }
+            if (textBeforeCursor.endsWith("!")) {
+                var lastAngleBracket = textBeforeCursor.lastIndexOf("<");
+                if (lastAngleBracket === -1) {
+                    return;
+                }
+                var elementText = textBeforeCursor.slice(lastAngleBracket, cursorPosition);
+                // remove angled brackets and !
+                var elementName = elementText.replace("!", "").trim();
+                var textToAdd = macroExpansions[elementName] || "";
+                if (textToAdd.length === 0) {
+                    return;
+                }
+                // insert at cursor pos
+                textarea.value = textarea.value.slice(0, lastAngleBracket) + textToAdd + textarea.value.slice(cursorPosition);
+                // set cursor position to end of inserted text
+                var newCursorPosition = lastAngleBracket + textToAdd.length;
+                textarea.selectionStart = newCursorPosition;
+                textarea.selectionEnd = newCursorPosition;
+                // trigger input event
+            }
+
+            // return;
+            // asterisk multiplication
+            var textBeforeNewLine = textBeforeCursor.lastIndexOf("\n");
+            var textAfterNewLine = textBeforeCursor.slice(textBeforeNewLine + 1);
+            var textBeforeAsterisk = textAfterNewLine.lastIndexOf("*");
+            var textBeforeAsteriskString = textBeforeCursor.slice(0, textBeforeAsterisk);
+            var textAfterAsterisk = textBeforeCursor.slice(textBeforeAsterisk + 1);
+            var textAfterNewLineBeforeAsterisk = textAfterNewLine.slice(textBeforeAsteriskString.length - textAfterNewLine.length);
+            var multipliedLine = textBeforeAsteriskString.trim().repeat(parseInt(textAfterAsterisk.trim()) - 1|| 0);
+            var characterAfterCursor = textarea.value[cursorPosition + 1] || null;
+            if (!characterAfterCursor && textAfterAsterisk.trim().length > 0) {
+                // if there are any chars after the asterisk, return since it means the user is typing in the middle of a line
+                // this has the side effect of making sure that you can't type * 10 or * 100, etc.
+                // // insert at cursor position, and remove asterisk
+                var text = textarea.value;
+                // if text before asterisk is empty, insert at start of text
+                if (textBeforeAsterisk === -1) {
+                    text = multipliedLine + textAfterAsterisk;
+                } else {
+                    // insert multiplied line at cursor position, and remove asterisk
+                    text = text.slice(0, textBeforeAsterisk) + multipliedLine + text.slice(cursorPosition);
+                }
+                textarea.value = text;
+                textarea.focus();
+                textarea.selectionStart = textBeforeAsterisk + multipliedLine.length;
+            }
+        }
+
+        function getCompleteElementBeforeCursorPosition () {
+            var textarea = qs("#html");
+            var cursorPosition = textarea.selectionStart;
+            var textBeforeCursor = textarea.value.slice(0, cursorPosition);
+            var lastAngleBracket = textBeforeCursor.lastIndexOf(">");
+            if (lastAngleBracket === -1) return null;
+            var element = textBeforeCursor.slice(0, lastAngleBracket + 1);
+            return element;
+        }
+
+        function getPropertiesOfCompleteElementBeforeCursorPosition () {
+            var element = getCompleteElementBeforeCursorPosition();
+            if (!element) return null;
+            var tagName = element.match(/<(\w+)/)[1];
+            var attributes = {};
+            // attrs may be x="" or x="value"
+            var attrRegex = /(\w+)="([^"]*?)"/g;
+            var match;
+            while (match = attrRegex.exec(element)) {
+                attributes[match[1]] = match[2];
+            }
+            return { tagName, attributes };
+        }
+        
+        function isInAnyTrie (text) {
+            console.log("Checking if in any trie:", text);
+            if (isInCSS) {
+                return cssPropertyTrie.find(text);
+            }
+            console.log("Checking if in any trie:", text);
+            return trie.find(text) || colorTrie.find(text) || microformatsTrie.find(text);
+        }
+        
+        function add (event, _type = null) {
+            // trigger input event
+            var textarea = qs("#html");
+            // textarea.dispatchEvent(new Event("input"));
+            // if more, switch context to hint
+            if (event.currentTarget.querySelector("span").textContent === MORE) {
+                // stop keyboard from closing
+                event.preventDefault();
+                ctx_results = hints[ctx.toLowerCase()];
+                // remove hints already in element
+                var elementProps = getPropertiesOfCompleteElementBeforeCursorPosition();
+                if (elementProps) {
+                    var elementAttributes = Object.keys(elementProps.attributes);
+                    ctx_results = Object.fromEntries(
+                        Object.entries(ctx_results).filter(([key]) => !elementAttributes.includes(key))
+                    );
+                }
+                // pad to be 3 wide
+                var ix = 1;
+                while (Object.keys(ctx_results).length < 3) {
+                    ctx_results[" ".repeat(ix)] = 0.1;
+                    ix++;
+                }
+                
+                results = Object.keys(ctx_results).sort((a, b) => ctx_results[b] - ctx_results[a]);
+
+                keyboard.innerHTML = results.map((key) => `<li><span>${key}</span>${elementDefinitions[key] && showElementDefinitions? `<small>${elementDefinitions[key]}</small>` : ""}</li>`).join("");
+                // add click event to new elements
+                for (var el of document.querySelectorAll(".keyboard li")) {
+                    el.addEventListener("click", add.bind(el));
+                }
+                // set last keyboard item to [-]
+                // add [-] to last element
+                var newLast = document.createElement("li");
+                newLast.innerHTML = `<span>${BACK}</span>`;
+                newLast.addEventListener("click", add.bind(newLast));
+                keyboard.appendChild(newLast);
+                return;
+            }
+            if (event.currentTarget.querySelector("span").textContent === BACK) {
+                // trigger input event
+                var textarea = qs("#html");
+                textarea.dispatchEvent(new Event("input"));
+                return;
+            }
+            var tag = event.currentTarget.querySelector("span").textContent;
+            // remove \n from tag
+            tag = tag.replace("\n", "");
+            // if tag in self closing, replace > with />
+            if (non_closing_tags.includes(tag.slice(1, -1))) {
+                tag = tag.slice(0, -1) + "/>";
+            }
+            console.log(tag)
+            // get text after last space in tag 
+            tag = " " + tag;
+            var tag = tag.slice(tag.lastIndexOf(" ") + 1);
+            // if tag == class, show class menu
+            if (tag === "class") {
+                showClassMenu();
+            }
+            var textarea = null;
+            if (!isInCSS) {
+                textarea = qs("#html");
+            } else {
+                textarea = qs("#css");
+            }
+            var text = textarea.value;
+            // add new tag
+            // add text at user's cursor position
+            var cursorPosition = textarea.selectionStart;
+            // if doesn't start with <, add one letter before
+            var posOffsetForClasses = 1 ? 
+                (tag.startsWith("<") ? 0 : 1) : 0; // if tag starts with <, no offset, otherwise offset by 1
+            if (!isInCSS) {
+                cursorPosition -= posOffsetForClasses; // adjust cursor position for the tag
+            }
+            // zip element and cursor
+            var numberOfCharsOfElementTyped = 0;
+            var textAfterLastClosedBracket = text.slice(0, cursorPosition);
+            var lastClosedBracketIndex = textAfterLastClosedBracket.lastIndexOf(">") ? !isInCSS ? textAfterLastClosedBracket.lastIndexOf(">") : textAfterLastClosedBracket.lastIndexOf("}") : -1;
+            var textAfterLastClosedBracket = textAfterLastClosedBracket.slice(lastClosedBracketIndex + 1);
+            var textAfterLastSpaceAndClosedBracket = textAfterLastClosedBracket.trim();
+            if (textAfterLastSpaceAndClosedBracket.length === 0) {
+                // if no text after last closed bracket, set tag to empty
+                textAfterLastSpaceAndClosedBracket = textAfterLastClosedBracket;
+            } else if (textAfterLastSpaceAndClosedBracket.includes(" ")) {
+                // if there is a space, get text after last space
+                textAfterLastSpaceAndClosedBracket = textAfterLastSpaceAndClosedBracket.slice(" " + textAfterLastSpaceAndClosedBracket.lastIndexOf(" ") + 1);
+            }
+            if (isInAnyTrie(textAfterLastSpaceAndClosedBracket).length > 0) {
+                numberOfCharsOfElementTyped = textAfterLastSpaceAndClosedBracket.length;
+            } else {
+                numberOfCharsOfElementTyped = 0;
+            }
+            // if in css, get #of words in last word
+            var lastWord = textarea.value.slice(0, cursorPosition).split(/\s+/).pop();
+            var positionOfLastCurlyBracket = textarea.value.lastIndexOf("{", cursorPosition);
+            if (isInCSS && positionOfLastCurlyBracket > cursorPosition) {
+                numberOfCharsOfElementTyped = lastWord.length;
+            } else if (isInCSS) {
+                var lastWordBeforeCursor = textarea.value.slice(0, cursorPosition).split(/\s+/).pop();
+                numberOfCharsOfElementTyped = lastWordBeforeCursor.length;
+            }
+            var nextCharIsQuotation = text[cursorPosition] === '"' || text[cursorPosition] === "'" || text[cursorPosition + 1] === '"' || text[cursorPosition + 1] === "'";
+            // set numberOfCharsOfElementTyped if data-trie
+            if (event.currentTarget.querySelector("span").classList.contains("data-trie")) {
+                // calculate num of chars added
+                var trieContents = text.slice(cursorPosition - numberOfCharsOfElementTyped, cursorPosition);
+                // replace class=" with class=" space
+                trieContents = trieContents.replace(/class="/g, 'class=" ');
+                var lastWord = trieContents.split(/\s+/).pop();
+                numberOfCharsOfElementTyped = lastWord.length + 1;
+            }
+            if (isInCSS) {
+                fullCSSTextBeforeManipulation = textarea.value;
+            } else {
+                fullHTMLTextBeforeManipulation = textarea.value; // save current HTML text before manipulation
+            }
+            console.log("Adding tag:", tag, "at cursor position:", cursorPosition, "with number of chars typed:", numberOfCharsOfElementTyped);
+            if (tag.trim().startsWith("<")) {
+                console.log("tag adding statement")
+                text = text.slice(0, cursorPosition - numberOfCharsOfElementTyped) + (expansions[tag.slice(1, -1)] || tag) + text.slice(cursorPosition);
+                textarea.value = text;
+                textarea.focus();
+                textarea.selectionStart = cursorPosition + (expansions[tag.slice(1, -1)] || tag).length; // length of the tag or expansion
+                textarea.selectionEnd = textarea.selectionStart; // set selection end to the same position
+            } else if (nextCharIsQuotation) {
+                console.log("next char quotation adding statement")
+                text = text.slice(0, cursorPosition - numberOfCharsOfElementTyped + 1) + (expansions[tag] || tag) + " " + text.slice(cursorPosition + 1);
+                textarea.value = text;
+                textarea.focus();
+                // move cursor to end of the class
+                textarea.selectionStart = textarea.selectionEnd = cursorPosition + 1 + (expansions[tag] || tag).length + 3; // +1 for space
+            } else if (isInCSS) {
+                console.log("css property adding statement", numberOfCharsOfElementTyped)
+                console.log("Adding CSS property at cursor position:", cursorPosition);
+                var addColon = cssProperties.includes(tag) && !isInClass ? ": " : " ";
+                // reset numberOfCharsOfElementTyped to zero if there is a colon
+                if (addColon === " ") {
+                    numberOfCharsOfElementTyped = 0;
+                }
+                text = text.slice(0, cursorPosition - numberOfCharsOfElementTyped) + tag + addColon + text.slice(cursorPosition);
+
+                textarea.value = text;
+                textarea.focus();
+                // move cursor to end of the property
+                console.log(numberOfCharsOfElementTyped)
+                textarea.selectionStart = textarea.selectionEnd = cursorPosition + (expansions[tag] || tag).length + 2 - numberOfCharsOfElementTyped; // +2 for : and space
+            } else {
+                console.log("last case adding statement")
+                console.log("Adding attribute to tag at cursor position:", cursorPosition);
+                // get element name before cursor
+                var elementName = textarea.value.slice(0, cursorPosition).split(/<|>/).pop().trim();
+                // remove /
+                var elementName = elementName.replace(/\/$/, "");
+                // get first word in element name
+                var firstWordInElementName = elementName.split(" ")[0];
+                var elementName = firstWordInElementName;
+                console.log("Element name before cursor:", elementName);
+
+                var offsetForSelfClosingElement = 0;
+                if (non_closing_tags.includes(elementName.trim())) {
+                    console.log("Element is self-closing, adjusting offset");
+                    offsetForSelfClosingElement = 2;
+                }
+                var new_text = text.slice(0, cursorPosition - offsetForSelfClosingElement) + " " + (expansions[tag.slice(1, -1)] || tag) + '=""';
+                if (non_closing_tags.includes(elementName.trim())) {
+                    // if element is self-closing, add /> at the end
+                    new_text += " />";
+                    new_text += text.slice(cursorPosition + 1);
+                } else {
+                    // if element is not self-closing, add > at the end
+                    new_text += ">";
+                    new_text += text.slice(cursorPosition + 1);
+                }
+                textarea.value = new_text;
+                textarea.focus();
+                // move cursor to end of the attribute
+                textarea.selectionStart = textarea.selectionEnd = cursorPosition - 1 + (expansions[tag.slice(1, -1)] || tag).length + 2; // +2 for
+            }
+            var allTextBeforeCursor = textarea.value.slice(0, textarea.selectionStart);
+            var allTextBeforeCursorNoSpaces = allTextBeforeCursor.replace(/[\s\n\t]/g, "");
+
+            if (!isInCSS) {
+                textarea.value = html_beautify(textarea.value, {
+                    indent_size: 2,
+                    wrap_line_length: 0
+                });
+            } else {
+                textarea.value = css_beautify(textarea.value, {
+                    indent_size: 2,
+                    wrap_line_length: 0
+                }) + " ";
+            }
+            let i = 0; // index for no-spaces text
+            let checkedChars = 0; // index for textarea value
+
+            while (checkedChars < textarea.value.length && i < allTextBeforeCursorNoSpaces.length) {
+                let charInText = textarea.value[checkedChars];
+
+                // Skip whitespace in textarea
+                if (charInText === " " || charInText === "\n" || charInText === "\t") {
+                    checkedChars++;
+                    continue;
+                }
+
+                if (charInText !== allTextBeforeCursorNoSpaces[i]) {
+                    console.log("Setting cursor position to:", i);
+                    break;
+                }
+
+                checkedChars++;
+                i++;
+            }
+
+            textarea.selectionStart = textarea.selectionEnd = checkedChars;
+            // if in css, move forward by 1
+            if (isInCSS) {
+                textarea.selectionStart = textarea.selectionEnd = checkedChars + 1;
+            }
+            textarea.focus();
+            switchContext(tag.slice(1, -1)); // switch context to the new tag
+            // trigger input event to run stack again
+            textarea.dispatchEvent(new Event("input"));
+        }
+
+        document.getElementById("prev").addEventListener("click", () => {
+            // html or css depending
+            var textareaElement = qs(isInCSS ? "#css" : "#html");
+            var cursorPosition = textareaElement.selectionStart;
+            // get position of last > before cursor
+            var lastGreaterThanIndex = textareaElement.value.lastIndexOf("<", cursorPosition - 2);
+            // move cursor to end of the tag
+            textareaElement.selectionStart = textareaElement.selectionEnd = lastGreaterThanIndex;
+            textareaElement.focus();
+            // trigger input event
+            textareaElement.dispatchEvent(new Event("input"));
+        });
+
+        document.getElementById("next").addEventListener("click", () => {
+            var textareaElement = qs(isInCSS ? "#css" : "#html");
+            var cursorPosition = textareaElement.selectionStart;
+            var textAfterCursor = textareaElement.value.slice(cursorPosition);
+
+            var nextGreaterThanIndex = textAfterCursor.indexOf(">");
+            textareaElement.selectionStart = textareaElement.selectionEnd = cursorPosition + nextGreaterThanIndex + 1;
+            textareaElement.focus();
+            textareaElement.dispatchEvent(new Event("input"));
+        });
+
+        function switchContext (newCtx, showMore = false) {
+            if (!isInCSS) {
+                ctx_results = getProbs(ctx);
+                results = Object.keys(ctx_results).sort((a, b) => ctx_results[b] - ctx_results[a]);
+                keyboard.innerHTML = results.map((key) => `<li><span>&lt;${key}&gt;</span>${elementDefinitions[key] && showElementDefinitions ? `<small>${elementDefinitions[key]}</small>` : ""}</li>`).join("");
+            } else {
+                console.log(ctx, "ctx")
+                ctx_results = cssPropertyAttributeContextProbs[ctx.toLowerCase()] || cssProbs[ctx.toLowerCase()] || {" ": 0, "  ": 0 };
+                results = Object.keys(ctx_results).sort((a, b) => ctx_results[b] - ctx_results[a]);
+                keyboard.innerHTML = results.map((key) => `<li><span>${key}</span></li>`).join("");
+            }
+            // set colspan of last element to 2
+            if (results.length > 0) {
+                keyboard.querySelector("li:last-child").style.gridColumn = "span 2";
+            } else {
+                keyboard.querySelector("li:last-child").style.gridColumn = "span 1";
+            }
+            // if last char before cursor is <, query elementCandidates for first item
+            if (isInCSS) {
+                var textarea = qs("#css");
+            } else {
+                var textarea = qs("#html");
+            }
+            var text = textarea.value;
+            var textBeforeCursor = text.slice(0, textarea.selectionStart);
+            // if > within 5 chars from cursor
+            var cursorPosition = textarea.selectionStart;
+            var numberOfCharsOfElementTyped = 0;
+            var textAfterLastClosedBracket = text.slice(0, cursorPosition);
+            var lastClosedBracketIndex = textAfterLastClosedBracket.lastIndexOf(">");
+            var textAfterLastClosedBracket = textAfterLastClosedBracket.slice(lastClosedBracketIndex + 1);
+            var textAfterLastSpaceAndClosedBracket = textAfterLastClosedBracket.trim();
+            if (textAfterLastSpaceAndClosedBracket.length === 0) {
+                // if no text after last closed bracket, set tag to empty
+                textAfterLastSpaceAndClosedBracket = textAfterLastClosedBracket;
+            } else if (textAfterLastSpaceAndClosedBracket.includes(" ")) {
+                // if there is a space, get text after last space
+                textAfterLastSpaceAndClosedBracket = textAfterLastSpaceAndClosedBracket.slice(textAfterLastSpaceAndClosedBracket.lastIndexOf(" ") + 1);
+            }
+            var lastWord = null;
+            // get text after >
+            if (!isInCSS) {
+                var lastWord = textAfterLastSpaceAndClosedBracket.slice(textAfterLastSpaceAndClosedBracket.lastIndexOf(">") + 1).trim();
+            } else {
+                var textAfterLastClosedCurlyBracket = textBeforeCursor.slice(textBeforeCursor.lastIndexOf("}") + 1).trim();
+                var textAfterLastClosedBracket = textAfterLastSpaceAndClosedBracket.slice(textAfterLastSpaceAndClosedBracket.lastIndexOf(">") + 1).trim();
+                var textAfterLastClosedCurlyBracket = textAfterLastClosedCurlyBracket.slice(textAfterLastClosedCurlyBracket.lastIndexOf("}") + 1).trim();
+                var newCtx = textAfterLastClosedCurlyBracket;
+                // if there is a ; before the cursor, get text after ;
+                var semicolonIndex = textBeforeCursor.lastIndexOf(";");
+                if (semicolonIndex !== -1) {
+                    newCtx = textBeforeCursor.slice(semicolonIndex + 1).trim();
+                }
+            }
+            if (!lastWord) {
+                lastWord = textBeforeCursor.trim().split(" ").pop().trim();
+            }
+            // if ctx is in elementCandidates, add first item
+            var cursorIsAfterCurlyBracket = textBeforeCursor.includes("{") && ((textBeforeCursor.lastIndexOf("{") > textBeforeCursor.lastIndexOf("}") && textBeforeCursor.lastIndexOf("{") > cursorPosition) || (textBeforeCursor.lastIndexOf("{") === -1 && textBeforeCursor.lastIndexOf("}") === -1));
+
+            if ((trie.find(lastWord).length > 0 && trie.find(lastWord).length < 5) || (isInCSS && colorTrie.find(lastWord).length > 0 && lastWord.length > 0) || (isInCSS && cssPropertyTrie.find(lastWord.trim()).length > 0 && lastWord.length > 0)) {
+                // get shortest element from trie
+                var shortest = "";
+                var secondShortest = "";
+                if (!cursorIsAfterCurlyBracket) {
+                    for (var el of trie.find((isInCSS ? lastWord.trim() : lastWord.trim()))) {
+                        if (shortest === "" || el.length < shortest.length && !cssPropertyTrie.find(el).length) {
+                            shortest = el;
+                        }
+                        if (secondShortest === "" || (el.length < secondShortest.length && el.length > shortest.length)) {
+                            secondShortest = el;
+                        }
+                    }
+                    if (shortest === "") {
+                        for (var el of cssPropertyTrie.find((isInCSS ? lastWord.trim() : lastWord.trim()))) {
+                            if (!non_closing_tags.includes(el) && (shortest === "" || el.length < shortest.length)) {
+                                shortest = el;
+                            }
+                            if (secondShortest === "" || (el.length < secondShortest.length && el.length > shortest.length)) {
+                                secondShortest = el;
+                            }
+                        }
+                    }
+                } else {
+                    for (var el of colorTrie.find((isInCSS ? lastWord.trim() : lastWord.trim()))) {
+                        if (!non_closing_tags.includes(el) && (shortest === "" || el.length < shortest.length)) {
+                            shortest = el;
+                        }
+                        if (secondShortest === "" || (el.length < secondShortest.length && el.length > shortest.length)) {
+                            secondShortest = el;
+                        }
+                    }
+                }
+                if (lastWord === ctx) {
+                    shortest = null;
+                    // remove recommendation from keyboard
+                    for (var el of document.querySelectorAll(".keyboard li span")) {
+                        if (el.textContent === `<${newCtx}>` || el.textContent === newCtx) {
+                            el.textContent = "";
+                        }
+                    }
+                }
+                // replace last element with shortest
+                var currentFirstElement = keyboard.querySelector("li:nth-child(1) span").textContent;
+                if (!isInCSS) {
+                    keyboard.querySelector("li:nth-child(1) span").textContent = `<${shortest.replace("-", "-\n")}>`;
+                    // if first and second shortest not same
+                    if (shortest !== secondShortest) {
+                        keyboard.querySelector("li:nth-child(2) span").textContent = `<${secondShortest.replace("-", "-\n")}>`;
+                    }
+                } else {
+                    keyboard.querySelector("li:nth-child(1) span").textContent = shortest.replace("-", "-\n");
+                    // if first and second shortest not same
+                    if (shortest !== secondShortest) {
+                        keyboard.querySelector("li:nth-child(2) span").textContent = secondShortest.replace("-", "-\n");
+                    }
+                }
+                // update second too
+                // set a data-trie-invoke attribute to the first element
+                // keyboard.querySelector("li:nth-child(1) span").classList.add("data-trie");
+                // keyboard.querySelector("li:nth-child(2) span").textContent = currentFirstElement; // move current first element to second
+                // add click event to the first element
+            } 
+            // check if ctx is last in elements list
+            if (hints[ctx]) {
+                // reset colspan
+                qs(".keyboard li:last-child").style.gridColumn = "span 1";
+                keyboard.innerHTML += `<li><span></span></li>`;
+                keyboard.querySelector("li:last-child span").textContent = "[+]";
+            }
+            // if in css and no ; after last colon
+            var lastColon = textBeforeCursor.lastIndexOf(":");
+            var textAfterLastColon = textBeforeCursor.slice(lastColon + 1).trim();
+            var lastSemicolon = textAfterLastColon.lastIndexOf(";");
+            if (isInCSS && (lastColon < lastSemicolon || lastSemicolon === -1)) {
+                // reset colspan
+                qs(".keyboard li:last-child").style.gridColumn = "span 1";
+                keyboard.innerHTML += `<li><span></span></li>`;
+                keyboard.querySelector("li:last-child span").textContent = ";";
+                isInCSSColonContext = true;
+            } else {
+                isInCSSColonContext = false;
+            }
+            // remove lt and gt if empty
+            for (var el of document.querySelectorAll(".keyboard li span")) {
+                // remove < and > chars
+                var elWithoutTags = el.textContent.replace(/<|>/g, "").trim();
+                if (elWithoutTags === "") {
+                    el.textContent = "";
+                }
+            }
+            for (var el of document.querySelectorAll(".keyboard li")) {
+                el.addEventListener("click", add.bind(el));
+            }
+        }
+        switchContext(ctx);
+        function trigger (e) {
+            // if e char is a smart quote, replace with "
+            if (e.target.value.endsWith("“")) {
+                e.target.value = e.target.value.slice(0, -1) + "\"";
+            }
+            if (e.target.value.endsWith("”")) {
+                e.target.value = e.target.value.slice(0, -1) + "\"";
+            }
+            if (e.target.value.endsWith("‘")) {
+                e.target.value = e.target.value.slice(0, -1) + "'";
+            }
+            if (e.target.value.endsWith("’")) {
+                e.target.value = e.target.value.slice(0, -1) + "'";
+            }
+            emmetExpansion(e);
+            // if last char is >!, do macroExpansions
+            if (e.target.value.endsWith(">!")) {
+                emmetExpansion(e);
+                return;
+            }
+            var text = e.target.value;
+            var cursorPositionInDoc = e.target.selectionStart;
+            var textBeforeCursor = text.slice(0, cursorPositionInDoc);
+            // get last tag before cursor is <*>
+            var lastTag = textBeforeCursor.match(/<[^>]*>/g);
+            // remove all symbols and then remove duplicates that are next to each other
+            var showMore = false;
+            // if cursor not between "", run hideClassMenu()
+            var indexOfClassOpen = textBeforeCursor.lastIndexOf('class="');
+            var textAfterClassOpen = e.target.value.slice(indexOfClassOpen + 7);
+            var indexOfClassClose = textAfterClassOpen.indexOf('"');
+            var indexOfClassCloseInFullDocument = indexOfClassClose === -1 ? -1 : indexOfClassClose + indexOfClassOpen + 7;
+
+            if ((indexOfClassOpen < cursorPositionInDoc && (cursorPositionInDoc - 1 < indexOfClassCloseInFullDocument + 1 || indexOfClassCloseInFullDocument == -1) && (indexOfClassCloseInFullDocument != -1 && indexOfClassOpen != -1)) || text.trim().endsWith(".")) {
+                isInClass = true;
+                showClassMenu();
+            } else {
+                hideClassMenu();
+                isInClass = false;
+            }
+
+            if (!isInCSS) {
+                var lastTagsWithoutSymbols = lastTag ? lastTag.map(tag => tag.split(" ")[0].replace(/[^a-zA-Z0-9]/g, "")) : [];
+                var lastTagsWithoutSymbolsOriginal = [...lastTagsWithoutSymbols];
+                // if a tag has the same value before, set to "END"; otherwise set to the last tag
+                // run 100 times
+                
+                for (let j = 0; j < 10; j++) {
+                    for (let i = 1; i < lastTagsWithoutSymbols.length; i++) {
+                        if (lastTagsWithoutSymbols[i] === lastTagsWithoutSymbols[i - 1]) {
+                            lastTagsWithoutSymbols[i] = "END";
+                            lastTagsWithoutSymbols[i - 1] = "END";
+                        }
+                    }
+                    lastTagsWithoutSymbols = lastTagsWithoutSymbols.filter(tag => tag !== "END"); // && !non_closing_tags.includes(tag));
+                }
+                lastTag = lastTagsWithoutSymbols.filter(tag => tag !== "END");
+
+                var showMore = lastTagsWithoutSymbolsOriginal[lastTagsWithoutSymbolsOriginal.length - 1] === lastTag;
+
+                if (lastTag.length > 0) {
+                    lastTag = lastTag[lastTag.length - 1];
+                    if (getProbs(lastTag)) {
+                        ctx = lastTag.toLowerCase();
+                    } else {
+                        ctx = chooseBetweenCtxes();
+                    }
+                } else {
+                    ctx = chooseBetweenCtxes();
+                }
+            } else {
+                // check whether all {} are paired
+                var allBraces = textBeforeCursor.match(/{|}/g) || [];
+                var openBraces = allBraces.filter(brace => brace === "{").length;
+                var closeBraces = allBraces.filter(brace => brace === "}").length;
+                console.log("openBraces", openBraces, "closeBraces", closeBraces);
+                // if last char is a colon, set ctx to attr of last chars before last sapce
+                var lastCharsBeforeLastSpace = textBeforeCursor.slice(textBeforeCursor.trim().lastIndexOf(" ") + 1).trim();
+                if (lastCharsBeforeLastSpace.endsWith(":")) {
+                    var lastCharsBeforeLastColon = lastCharsBeforeLastSpace.slice(0, lastCharsBeforeLastSpace.length - 1).trim();
+                    if (cssProperties.includes(lastCharsBeforeLastColon)) {
+                        ctx = lastCharsBeforeLastColon;
+                    } else {
+                        ctx = "no_ctx_CSS_PROPS";
+                    }
+                } else {
+                    var colonPosition = textBeforeCursor.lastIndexOf(":");
+                    var numCharsAfterColon = textBeforeCursor.slice(colonPosition + 1).trim().length;
+                    var cursorPosition = e.target.selectionStart;
+                    var firstCurlyBracketAfterCursor = e.target.value.indexOf("}", cursorPosition);
+                    // console.log(firstCurlyBracketAfterCursor, cursorPosition)
+                    if (openBraces > closeBraces) {
+                        ctx = "no_ctx_CSS_PROPS";
+                    } else if (isInCSSColonContext && firstCurlyBracketAfterCursor > cursorPosition) {
+                        ctx = "NONE";
+                    } else if (firstCurlyBracketAfterCursor > cursorPosition) {
+                        ctx = "no_ctx_CSS_PROPS"
+                    } else {
+                        console.log("ctx is no_ctx_CSS_PROPS");
+                        ctx = "no_ctx";
+                    }
+                }
+            }
+            switchContext(ctx, showMore);
+            // render preview
+            var preview = qs(".preview");
+            preview.innerHTML = textarea.value || "Start typing HTML in the HTML pane to see the preview here."
+        }
+        textarea.addEventListener("input", trigger);
+        textarea.addEventListener("click", trigger);
+
+        var cssTextArea = qs("#css-container textarea");
+
+        cssTextArea.addEventListener("input", trigger);
+        cssTextArea.addEventListener("click", trigger);
+
+        function updateCSS() {
+            // render css
+            var preview = qs(".preview");
+            var style = document.createElement("style");
+
+            // replace text area smart quotes with " and '
+            cssTextArea.value = cssTextArea.value.replace(/“|”/g, '"');
+            cssTextArea.value = cssTextArea.value.replace(/‘|’/g, "'");
+
+            // encapsulate everything in .preview so it doesn't affect the rest of the page
+            style.textContent = ".preview { " + cssTextArea.value + " }";
+
+            // remove old style if exists
+            var oldStyle = preview.querySelector("style");
+            if (oldStyle) {
+                preview.removeChild(oldStyle);
+            }
+            preview.appendChild(style);
+        }
+
+        cssTextArea.addEventListener("input", updateCSS);
+        textarea.addEventListener("input", updateCSS);
+        cssTextArea.addEventListener("click", updateCSS);
+        // toggle preview so preview is displayed on page load
+        var textarea = qs("#html");
+        textarea.dispatchEvent(new Event("input"));
+
+        // https://stackoverflow.com/questions/43833049/how-to-make-fixed-content-go-above-ios-keyboard
+        var keyboard = qs(".keyboard");
+        var nextPrev = qs(".prev-next");
+        let height = window.visualViewport.height;
+        const viewport = window.visualViewport;
+        function resizeHandler() {
+            if (!/iPhone|iPad|iPod/.test(window.navigator.userAgent)) {
+                height = viewport.height;
+            }
+            keyboard.style.bottom = `${height - viewport.height + 10}px`;
+            // next prev should be above the keyboard by 100px
+            // nextPrev.style.bottom = `${height - viewport.height + 95}px`;
+            // resize text area so it isn't full height
+            var textArea = qs("#html");
+            textArea.style.height = `${viewport.height - 160}px`;
+        }
+
+        // if FxiOS (Firefox iOS), don't add
+        // This is because Firefox has a different way of handling the keyboard
+        if (!/FxiOS/.test(window.navigator.userAgent)) { // && !/Mozilla/.test(window.navigator.userAgent)) {
+            window.visualViewport?.addEventListener('resize', resizeHandler);
+        }
+    </script>
+</html>
+
