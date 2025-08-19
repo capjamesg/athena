@@ -12,6 +12,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
         <script src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.15.4/beautify-html.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.15.4/beautify-css.js"></script>
+        <script src="./trie.js"></script>
         <style>
             * {
                 font-family:
@@ -378,124 +379,6 @@
 
         // scroll user to html container
         qs("#html-container").scrollIntoView();
-        function TrieNode(key) {
-  // the "key" value will be the character in sequence
-  this.key = key;
-  
-  // we keep a reference to parent
-  this.parent = null;
-  
-  // we have hash of children
-  this.children = {};
-  
-  // check to see if the node is at the end
-  this.end = false;
-}
-
-// iterates through the parents to get the word.
-// time complexity: O(k), k = word length
-TrieNode.prototype.getWord = function() {
-  var output = [];
-  var node = this;
-  
-  while (node !== null) {
-    output.unshift(node.key);
-    node = node.parent;
-  }
-  
-  return output.join('');
-};
-
-// -----------------------------------------
-
-// we implement Trie with just a simple root with null value.
-function Trie() {
-  this.root = new TrieNode(null);
-}
-
-// inserts a word into the trie.
-// time complexity: O(k), k = word length
-Trie.prototype.insert = function(word) {
-  var node = this.root; // we start at the root 😬
-  
-  // for every character in the word
-  for(var i = 0; i < word.length; i++) {
-    // check to see if character node exists in children.
-    if (!node.children[word[i]]) {
-      // if it doesn't exist, we then create it.
-      node.children[word[i]] = new TrieNode(word[i]);
-      
-      // we also assign the parent to the child node.
-      node.children[word[i]].parent = node;
-    }
-    
-    // proceed to the next depth in the trie.
-    node = node.children[word[i]];
-    
-    // finally, we check to see if it's the last word.
-    if (i == word.length-1) {
-      // if it is, we set the end flag to true.
-      node.end = true;
-    }
-  }
-};
-
-// check if it contains a whole word.
-// time complexity: O(k), k = word length
-Trie.prototype.contains = function(word) {
-  var node = this.root;
-  
-  // for every character in the word
-  for(var i = 0; i < word.length; i++) {
-    // check to see if character node exists in children.
-    if (node.children[word[i]]) {
-      // if it exists, proceed to the next depth of the trie.
-      node = node.children[word[i]];
-    } else {
-      // doesn't exist, return false since it's not a valid word.
-      return false;
-    }
-  }
-  
-  // we finished going through all the words, but is it a whole word?
-  return node.end;
-};
-
-// returns every word with given prefix
-// time complexity: O(p + n), p = prefix length, n = number of child paths
-Trie.prototype.find = function(prefix) {
-  var node = this.root;
-  var output = [];
-  
-  // for every character in the prefix
-  for(var i = 0; i < prefix.length; i++) {
-    // make sure prefix actually has words
-    if (node.children[prefix[i]]) {
-      node = node.children[prefix[i]];
-    } else {
-      // there's none. just return it.
-      return output;
-    }
-  }
-  
-  // recursively find all words in the node
-  findAllWords(node, output);
-  
-  return output;
-};
-
-// recursive function to find all words in the given node.
-function findAllWords(node, arr) {
-  // base case, if node is at a word, push to output
-  if (node.end) {
-    arr.unshift(node.getWord());
-  }
-  
-  // iterate through each children, call recursive findAllWords
-  for (var child in node.children) {
-    findAllWords(node.children[child], arr);
-  }
-}
 
         var non_closing_tags = [
             "img",
@@ -1145,11 +1028,11 @@ function findAllWords(node, arr) {
             },
         };
         var colors = ["blue", "green", "pink", "red", "yellow", "purple", "orange", "black", "white"];
-        var colorTrie = new Trie();
+        var colorTrie = new Triejs();
         for (var color of colors) {
-            colorTrie.insert(color);
+            colorTrie.add(color);
         }
-        var trie = new Trie();
+        var trie = new Triejs();
         var elements = ["html", "link", "div", "span", "p", "ul", "ol", "li", "a", "img", "h1", "h2", "h3", "section", "article", "main", "footer", "header", "nav", "aside", "form", "input", "button", "form", "label", "select", "option", "textarea", "table", "thead", "tbody", "tr", "th", "td", "blockquote", "code", "pre", "figure", "figcaption", "video", "audio", "canvas", "svg", "path", "circle", "rect", "line", "polygon", "polyline", "g", "defs", "use", "symbol", "title", "head", "style", "link", "meta", "base", "body", "dl", "dt", "dd", "cite", "time", "mark", "progress", "meter", "details", "summary", "dialog", "template", "slot", "picture", "source", "track"];
         
         // TODO: Finish lists
@@ -1162,17 +1045,17 @@ function findAllWords(node, arr) {
             "u-url": ["a"]
         };
 
-        var microformatsTrie = new Trie();
+        var microformatsTrie = new Triejs();
         for (var mf of microformats) {
-            microformatsTrie.insert(mf);
+            microformatsTrie.add(mf);
         }
 
         for (var el of elements) {
-            trie.insert(el);
+            trie.add(el);
         }
-        var cssPropertyTrie = new Trie();
+        var cssPropertyTrie = new Triejs();
         for (var prop of cssProperties) {
-            cssPropertyTrie.insert(prop);
+            cssPropertyTrie.add(prop);
         }
         var defaultClasses = {
             "side-by-side": 10,
@@ -1451,10 +1334,10 @@ function findAllWords(node, arr) {
         function isInAnyTrie (text) {
             console.log("Checking if in any trie:", text);
             if (isInCSS) {
-                return cssPropertyTrie.find(text);
+                return cssPropertyTrie.find(text) || [];
             }
             console.log("Checking if in any trie:", text);
-            return trie.find(text) || colorTrie.find(text) || microformatsTrie.find(text);
+            return trie.find(text) || colorTrie.find(text) || microformatsTrie.find(text) || [];
         }
         
         function add (event, _type = null) {
@@ -1767,7 +1650,7 @@ function findAllWords(node, arr) {
             // if ctx is in elementCandidates, add first item
             var cursorIsAfterCurlyBracket = textBeforeCursor.includes("{") && ((textBeforeCursor.lastIndexOf("{") > textBeforeCursor.lastIndexOf("}") && textBeforeCursor.lastIndexOf("{") > cursorPosition) || (textBeforeCursor.lastIndexOf("{") === -1 && textBeforeCursor.lastIndexOf("}") === -1));
 
-            if ((trie.find(lastWord).length > 0 && trie.find(lastWord).length < 5) || (isInCSS && colorTrie.find(lastWord).length > 0 && lastWord.length > 0) || (isInCSS && cssPropertyTrie.find(lastWord.trim()).length > 0 && lastWord.length > 0)) {
+            if (((trie.find(lastWord) || []).length > 0 && (trie.find(lastWord) || []).length < 5) || (isInCSS && (colorTrie.find(lastWord) || []).length > 0 && lastWord.length > 0) || (isInCSS && (cssPropertyTrie.find(lastWord.trim()) || []).length > 0 && lastWord.length > 0)) {
                 // get shortest element from trie
                 var shortest = "";
                 var secondShortest = "";
