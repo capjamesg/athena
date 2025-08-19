@@ -1,8 +1,11 @@
 # Athena
 
-<img width="2000" height="1292" alt="JamesCoffeeBlog_Mascot_17" src="https://github.com/user-attachments/assets/8800cfab-52b5-4bcd-915f-b4dea1b44ad6" />
+<img width="200" height="200" alt="JamesCoffeeBlog_Mascot_17" src="https://github.com/user-attachments/assets/8800cfab-52b5-4bcd-915f-b4dea1b44ad6" />
+<br><br>
 
 A mobile HTML and CSS editor.
+
+Read more about how this project works in "[Designing a mobile-first HTML editor](https://jamesg.blog/2025/08/17/designing-a-mobile-first-html-editor)".
 
 ## Demo
 
